@@ -1,0 +1,6 @@
+{% extends "converter/base.html" %}
+{% block heading %}Wynik niedostępny{% endblock %}
+{% block content %}
+<p class="notice warn">Ten wynik wygasł lub nie należy do tej sesji. Wynik jest przechowywany tylko przez ograniczony czas.</p>
+<p><a href="{% url 'converter:index' %}">Nowa konwersja</a></p>
+{% endblock %}

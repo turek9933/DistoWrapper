@@ -1,0 +1,41 @@
+{% extends "converter/base.html" %}
+{% block heading %}Wynik konwersji{% endblock %}
+{% block content %}
+{% if produced %}
+<p class="notice">Wykonano. Przetworzono {{ summary.files_with_output }} z {{ summary.files }} plików, utworzono {{ produced }} rysunków.</p>
+{% else %}
+<p class="notice fail">Nie utworzono żadnego rysunku.</p>
+{% endif %}
+
+{% if produced %}
+<p>
+  {% if single %}
+    {% for file in files %}{% for name in file.outputs %}
+      <a class="button" href="{% url 'converter:download_dxf' token name %}">Pobierz {{ name }}</a>
+    {% endfor %}{% endfor %}
+    {% if has_both %}<a class="button secondary" href="{% url 'converter:download_both' token %}">Pobierz oba</a>{% endif %}
+  {% else %}
+    <a class="button" href="{% url 'converter:download' token 'zip' %}">Pobierz ZIP (rysunki i raport)</a>
+  {% endif %}
+  <a class="button secondary" href="{% url 'converter:download' token 'report' %}">Raport JSON</a>
+</p>
+{% else %}
+<p><a class="button secondary" href="{% url 'converter:download' token 'report' %}">Raport JSON</a></p>
+{% endif %}
+
+<h2>Pliki i rysunki</h2>
+<ul class="files">
+{% for file in files %}
+  <li>
+    <strong>{{ file.name }}</strong>
+    {% if file.outputs %}<span> → {{ file.outputs|join:", " }}</span>{% endif %}
+    {% if file.messages %}
+      <ul class="messages">{% for message in file.messages %}<li>{{ message }}</li>{% endfor %}</ul>
+    {% endif %}
+  </li>
+{% endfor %}
+</ul>
+
+<p class="small">Pomieszczenia częściowe są rysowane tylko ze zmierzonych odcinków. Szczeliny nie są domykane automatycznie.</p>
+<p><a href="{% url 'converter:index' %}">Nowa konwersja</a></p>
+{% endblock %}

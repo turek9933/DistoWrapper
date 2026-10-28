@@ -1,0 +1,10 @@
+{% extends "converter/base.html" %}
+{% block heading %}Dostęp{% endblock %}
+{% block content %}
+{% if error %}<p class="notice fail">{{ error }}</p>{% endif %}
+<form method="post">
+  {% csrf_token %}
+  <div class="field"><label for="password">Hasło</label><input type="password" name="password" id="password" autofocus></div>
+  <p><button type="submit">Wejdź</button></p>
+</form>
+{% endblock %}

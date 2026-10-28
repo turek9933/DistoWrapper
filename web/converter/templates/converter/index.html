@@ -1,0 +1,52 @@
+{% extends "converter/base.html" %}
+{% block content %}
+{% if limit_error %}<p class="notice fail">Zbyt wiele żądań. Spróbuj ponownie za kilka minut.</p>{% endif %}
+<p>Prześlij pliki .cmi lub .xml z aplikacji DISTO Plan. Pliki nie są przechowywane trwale: wynik jest dostępny przez ograniczony czas.</p>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  <div class="field">
+    {{ form.files.label_tag }}
+    <div id="drop-zone" class="drop">Przeciągnij pliki tutaj lub kliknij, aby wybrać.<br>{{ form.files }}</div>
+    {{ form.files.errors }}
+  </div>
+  <fieldset>
+    <legend>{{ form.version.label }}</legend>
+    {% for radio in form.version %}<label>{{ radio.tag }} {{ radio.choice_label }}</label>{% endfor %}
+    {{ form.version.errors }}
+  </fieldset>
+  <fieldset>
+    <legend>{{ form.layout.label }}</legend>
+    {% for radio in form.layout %}<label>{{ radio.tag }} {{ radio.choice_label }}</label>{% endfor %}
+    {{ form.layout.errors }}
+  </fieldset>
+  <div class="field"><label>{{ form.labels }} {{ form.labels.label }}</label></div>
+  <div class="field"><label>{{ form.title }} {{ form.title.label }}</label></div>
+  <div class="field"><label>{{ form.gap_circles }} {{ form.gap_circles.label }}</label></div>
+  <div class="field"><label>{{ form.layers }} {{ form.layers.label }}</label></div>
+  <div class="field">{{ form.name.label_tag }} {{ form.name }}{{ form.name.errors }}</div>
+  <details>
+    <summary>Ustawienia zaawansowane</summary>
+    <div class="field">{{ form.free_limit.label_tag }} {{ form.free_limit }}{{ form.free_limit.errors }}</div>
+    <div class="field">{{ form.gap_threshold.label_tag }} {{ form.gap_threshold }}{{ form.gap_threshold.errors }}</div>
+    <div class="field">{{ form.spacing.label_tag }} {{ form.spacing }}{{ form.spacing.errors }}</div>
+  </details>
+  <p><button type="submit">Konwertuj</button></p>
+</form>
+<script>
+(function () {
+  var zone = document.getElementById("drop-zone");
+  var input = document.getElementById("id_files");
+  if (!zone || !input) return;
+  ["dragenter", "dragover"].forEach(function (name) {
+    zone.addEventListener(name, function (event) { event.preventDefault(); zone.classList.add("over"); });
+  });
+  ["dragleave", "drop"].forEach(function (name) {
+    zone.addEventListener(name, function (event) { event.preventDefault(); zone.classList.remove("over"); });
+  });
+  zone.addEventListener("drop", function (event) {
+    if (event.dataTransfer && event.dataTransfer.files.length) input.files = event.dataTransfer.files;
+  });
+})();
+</script>
+{% endblock %}

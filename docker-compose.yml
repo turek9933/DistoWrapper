@@ -1,0 +1,48 @@
+services:
+  distoweb:
+    build: .
+    restart: unless-stopped
+    environment:
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-0}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?ustaw DJANGO_SECRET_KEY}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:?ustaw DJANGO_ALLOWED_HOSTS}
+      DJANGO_CSRF_TRUSTED_ORIGINS: ${DJANGO_CSRF_TRUSTED_ORIGINS:?ustaw DJANGO_CSRF_TRUSTED_ORIGINS}
+      DJANGO_HSTS_SECONDS: ${DJANGO_HSTS_SECONDS:-0}
+      DATA_UPLOAD_MAX_NUMBER_FILES: ${DATA_UPLOAD_MAX_NUMBER_FILES:-1000}
+      FILE_UPLOAD_MAX_MEMORY_SIZE_MB: ${FILE_UPLOAD_MAX_MEMORY_SIZE_MB:-5}
+      DISTO_PASSWORD: ${DISTO_PASSWORD:-}
+      DISTO_MAX_FILES: ${DISTO_MAX_FILES:-40}
+      DISTO_MAX_FILE_MB: ${DISTO_MAX_FILE_MB:-25}
+      DISTO_MAX_TOTAL_MB: ${DISTO_MAX_TOTAL_MB:-150}
+      DISTO_EPHEMERAL_DIR: ${DISTO_EPHEMERAL_DIR:-/data}
+      DISTO_EPHEMERAL_TTL: ${DISTO_EPHEMERAL_TTL:-900}
+      DISTO_RATE_LIMIT: ${DISTO_RATE_LIMIT:-30}
+      DISTO_RATE_WINDOW: ${DISTO_RATE_WINDOW:-600}
+      DISTO_CLIENT_IP_HEADER: ${DISTO_CLIENT_IP_HEADER:-HTTP_CF_CONNECTING_IP}
+    read_only: true
+    tmpfs:
+      - /data:size=512m,mode=0700,uid=10001
+      - /tmp
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 768m
+    expose:
+      - "8000"
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    profiles: ["tunnel"]
+    command: ["tunnel", "--no-autoupdate", "run", "--token", "${CLOUDFLARE_TUNNEL_TOKEN:-}"]
+    depends_on:
+      - distoweb
+
+  cli:
+    build: .
+    profiles: ["cli"]
+    entrypoint: ["distocad"]
+    command: ["/dane", "-o", "/wyniki", "--version", "both"]
+    user: "${UID:-1000}:${GID:-1000}"
+    volumes:
+      - ./dane:/dane:ro
+      - ./wyniki:/wyniki
